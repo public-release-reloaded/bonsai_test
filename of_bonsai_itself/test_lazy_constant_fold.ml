@@ -93,7 +93,7 @@ let%expect_test "chained dependency on constant value" =
     |}]
 ;;
 
-let%expect_test "side-effect inside of unused branch" =
+let%expect_test "side-effect_ inside of unused branch" =
   let c _graph =
     match%sub Bonsai.return true with
     | true -> Bonsai.return ()
@@ -115,7 +115,7 @@ let%expect_test "side-effect inside of unused branch" =
     |}]
 ;;
 
-let%expect_test "side-effect inside of used branch" =
+let%expect_test "side-effect_ inside of used branch" =
   let c _graph =
     match%sub Bonsai.return true with
     | true -> Bonsai.return () >>| fun () -> print_endline "used"
@@ -319,7 +319,7 @@ let%expect_test "simple_assoc with a constant inside " =
   [%expect {| c |}]
 ;;
 
-let%expect_test "side-effect inside of toggled branch" =
+let%expect_test "side-effect_ inside of toggled branch" =
   let var = Bonsai.Expert.Var.create true in
   let c _graph =
     match%sub Bonsai.Expert.Var.value var with

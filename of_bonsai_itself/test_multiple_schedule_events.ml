@@ -33,7 +33,7 @@ let component ~start ~limit graph =
 
 let%expect_test "Does schedule_event run in the current frame or the next frame?" =
   (* NOTE: This test case solely demonstrates existing behavior. It shows that if a
-     state_machine schedules an event with [schedule_event] that effect will run in the
+     state_machine schedules an event with [schedule_event] that effect_ will run in the
      same frame. *)
   let handle = Handle.create (module Result_spec) (component ~start:0 ~limit:1_000) in
   Handle.show handle;

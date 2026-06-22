@@ -28,7 +28,7 @@ module Common (M : sig
       -> ('a -> 'b Bonsai.Effect_throttling.Poll_result.t Effect.t) Computation.t
   end) =
 struct
-  let%expect_test {| Effect_throttling.poll only runs one instance of an effect at a time |}
+  let%expect_test {| Effect_throttling.poll only runs one instance of an effect_ at a time |}
     =
     let qrt = Effect.For_testing.Query_response_tracker.create () in
     let respond q =
@@ -46,7 +46,7 @@ struct
     [%expect {| ((query 0) (result (Finished 1))) |}];
     respond 2;
     (* We call [recompute_view] after [respond 2] and before [respond 3] to demonstrate
-       that the effect being responded to doesn't begin until the next time the state
+       that the effect_ being responded to doesn't begin until the next time the state
        machine effects get run. This isn't necessarily desirable behavior, but it is the
        way this computation works, so it's worth showing in this test. *)
     Handle.recompute_view handle;
@@ -108,13 +108,13 @@ module _ = Common (struct
   end)
 
 module _ = Common (struct
-    let poll ?here:(_ = Stdlib.Lexing.dummy_pos) effect =
+    let poll ?here:(_ = Stdlib.Lexing.dummy_pos) effect_ =
       let open Bonsai.Let_syntax in
-      let%sub effect = Bonsai.Effect_throttling.poll effect in
-      let%sub effect = Bonsai.Effect_throttling.poll effect in
-      let%arr effect in
+      let%sub effect_ = Bonsai.Effect_throttling.poll effect_ in
+      let%sub effect_ = Bonsai.Effect_throttling.poll effect_ in
+      let%arr effect_ in
       fun int ->
-        match%map.Effect effect int with
+        match%map.Effect effect_ int with
         | Aborted -> Bonsai.Effect_throttling.Poll_result.Aborted
         | Finished (Finished result) -> Finished result
         | Finished Aborted -> raise_s [%message "Unexpected finished of aborted"]
@@ -141,7 +141,7 @@ let%expect_test {| Effect_throttling.poll deactivation |} =
   Handle.recompute_view handle;
   (* Since the [true] branch is inactive, no action is running, and they all count as
      "up_next". We will drop 0 and 1 because they will be replaced by 1 and 2,
-     respectively, since we only allow one effect to be in the pending queue at a time *)
+     respectively, since we only allow one effect_ to be in the pending queue at a time *)
   [%expect
     {|
     ((query 0) (result Aborted))
@@ -205,7 +205,7 @@ let%expect_test {| Effect_throttling.poll gets activated and de-activated the ne
   [%expect {| ((query 0) (result (Finished 5))) |}]
 ;;
 
-let%expect_test {| Effect_throttling.poll effect finishes while inactive and effect is queued |}
+let%expect_test {| Effect_throttling.poll effect_ finishes while inactive and effect_ is queued |}
   =
   let qrt = Effect.For_testing.Query_response_tracker.create () in
   let respond q =
@@ -260,8 +260,8 @@ let%expect_test {| Effect_throttling.poll in an assoc |} =
 
         let incoming map query =
           match Map.find map query with
-          | Some effect ->
-            let%bind.Effect result = effect in
+          | Some effect_ ->
+            let%bind.Effect result = effect_ in
             Effect.print_s
               [%message
                 (query : int) (result : int Bonsai.Effect_throttling.Poll_result.t)]

@@ -35,7 +35,7 @@ let%expect_test "Actor functor - basic functionality" =
         type incoming = unit
 
         let view (model, _) = Int.to_string model
-        let incoming (_, effect) () = effect
+        let incoming (_, effect_) () = effect_
       end)
       component
   in
@@ -144,7 +144,7 @@ let%expect_test "Actor functor - basic functionality (create with input is calla
         type incoming = unit
 
         let view (model, _) = Int.to_string model
-        let incoming (_, effect) () = effect
+        let incoming (_, effect_) () = effect_
       end)
       component
   in
