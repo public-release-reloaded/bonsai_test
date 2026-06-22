@@ -860,7 +860,7 @@ module%test [@name "pruning"] _ = struct
   ;;
 end
 
-module%test [@name "the optimization takes effect"] _ = struct
+module%test [@name "the optimization takes effect_"] _ = struct
   let%expect_test "state_machine1 depending on state_machine1" =
     let component =
       let%sub _, inject1 = no_op_sm1 in

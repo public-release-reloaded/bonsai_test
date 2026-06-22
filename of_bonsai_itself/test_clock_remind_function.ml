@@ -7,7 +7,7 @@ let run_effect_on_change_and_remind_every_span_if_true
   :  span:Time_ns.Span.t -> condition:bool Bonsai.t -> unit Ui_effect.t Bonsai.t
   -> Bonsai.graph -> unit Bonsai.t
   =
-  fun ~span ~condition effect graph ->
+  fun ~span ~condition effect_ graph ->
   let () =
     Bonsai.Edge.on_change'
       ~trigger:`After_display
@@ -15,7 +15,7 @@ let run_effect_on_change_and_remind_every_span_if_true
       condition
       graph
       ~callback:
-        (let%arr effect in
+        (let%arr effect_ in
          fun prev curr ->
            let should_run =
              match prev, curr with
@@ -24,7 +24,7 @@ let run_effect_on_change_and_remind_every_span_if_true
            in
            match should_run with
            | false -> Ui_effect.Ignore
-           | true -> effect)
+           | true -> effect_)
   in
   match%sub condition with
   | false -> Bonsai.return ()
@@ -37,7 +37,7 @@ let run_effect_on_change_and_remind_every_span_if_true
               ~trigger_on_activate:false
               ~when_to_start_next_effect:`Every_multiple_of_period_blocking
               (return span)
-              effect
+              effect_
               graph
           in
           Bonsai.return ())
@@ -56,7 +56,7 @@ let create_handle ~default =
         run_effect_on_change_and_remind_every_span_if_true
           ~span:(Time_ns.Span.of_min 10.0)
           ~condition:(Bonsai.Expert.Var.value var)
-          (Bonsai.return (Ui_effect.print_s [%message "ran effect!"]))
+          (Bonsai.return (Ui_effect.print_s [%message "ran effect_!"]))
           graph)
   in
   handle, fun x -> Bonsai.Expert.Var.set var x
@@ -65,7 +65,7 @@ let create_handle ~default =
 let%expect_test "true from the very beginning" =
   let handle, _set = create_handle ~default:true in
   Handle.recompute_view handle;
-  [%expect {| "ran effect!" |}]
+  [%expect {| "ran effect_!" |}]
 ;;
 
 let%expect_test "false from the very beginning" =
@@ -80,13 +80,13 @@ let%expect_test "false -> true -> false -> true" =
   [%expect {| |}];
   set true;
   Handle.recompute_view handle;
-  [%expect {| "ran effect!" |}];
+  [%expect {| "ran effect_!" |}];
   set false;
   Handle.recompute_view handle;
   [%expect {| |}];
   set true;
   Handle.recompute_view handle;
-  [%expect {| "ran effect!" |}]
+  [%expect {| "ran effect_!" |}]
 ;;
 
 let%expect_test "false -> true -> wait 9 mins -> wait 1 min -> wait 9 mins -> wait 1 min" =
@@ -95,7 +95,7 @@ let%expect_test "false -> true -> wait 9 mins -> wait 1 min -> wait 9 mins -> wa
   [%expect {| |}];
   set true;
   Handle.recompute_view handle;
-  [%expect {| "ran effect!" |}];
+  [%expect {| "ran effect_!" |}];
   Handle.advance_clock_by handle (Time_ns.Span.of_min 9.0);
   Handle.recompute_view handle;
   [%expect {| |}];
@@ -104,14 +104,14 @@ let%expect_test "false -> true -> wait 9 mins -> wait 1 min -> wait 9 mins -> wa
      clock.every, but it should still tick at 10 minutes, with a single frame delay. *)
   Handle.recompute_view handle;
   Handle.recompute_view handle;
-  [%expect {| "ran effect!" |}];
+  [%expect {| "ran effect_!" |}];
   Handle.advance_clock_by handle (Time_ns.Span.of_min 9.0);
   Handle.recompute_view handle;
   [%expect {| |}];
   Handle.advance_clock_by handle (Time_ns.Span.of_min 1.0);
   Handle.recompute_view handle;
   Handle.recompute_view handle;
-  [%expect {| "ran effect!" |}]
+  [%expect {| "ran effect_!" |}]
 ;;
 
 let%expect_test "false -> true -> wait 9 mins -> false -> wait 1 min -> wait 10 mins" =
@@ -120,7 +120,7 @@ let%expect_test "false -> true -> wait 9 mins -> false -> wait 1 min -> wait 10 
   [%expect {| |}];
   set true;
   Handle.recompute_view handle;
-  [%expect {| "ran effect!" |}];
+  [%expect {| "ran effect_!" |}];
   Handle.advance_clock_by handle (Time_ns.Span.of_min 9.0);
   Handle.recompute_view handle;
   [%expect {| |}];

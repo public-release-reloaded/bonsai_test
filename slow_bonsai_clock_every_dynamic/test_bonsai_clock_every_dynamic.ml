@@ -60,12 +60,12 @@ let component ?trigger_on_activate ~when_to_start_next_effect graph =
   let incr =
     let sleep = Bonsai.Clock.sleep graph in
     let%arr update and sleep and effect_time in
-    let effect = update succ in
+    let effect_ = update succ in
     match effect_time with
-    | None -> effect
+    | None -> effect_
     | Some effect_time ->
       let%bind.Bonsai.Effect () = sleep effect_time in
-      effect
+      effect_
   in
   let%tydi { state = is_active
            ; toggle = toggle_active_status
@@ -227,8 +227,8 @@ module%test Instant_effect_tests = struct
     Handle.do_actions handle [ Set_every (Time_ns.Span.of_sec 1.0) ];
     Handle.advance_clock_by handle (Time_ns.Span.of_int63_ns Int63.one);
     show ();
-    (* NOTE: One last tick due to [every] changing not taking effect in the current tick,
-       but only taking effect until the next tick. *)
+    (* NOTE: One last tick due to [every] changing not taking effect_ in the current tick,
+       but only taking effect_ until the next tick. *)
     [%expect {| 5 |}];
     Fn.apply_n_times
       ~n:100
@@ -248,7 +248,7 @@ end
 
 module%test Effect_that_takes_time = struct
   (* NOTE: Unlike the above test suite, these tests show what happens when the scheduled
-     effect takes time / isn't "instant". *)
+     effect_ takes time / isn't "instant". *)
 
   let%expect_test "Manually driving a constant clock" =
     bisimulate

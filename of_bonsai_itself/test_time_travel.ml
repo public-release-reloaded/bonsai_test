@@ -202,7 +202,7 @@ let%expect_test "get_current_time - behaves correctly" =
     type incoming = Print_current_time
 
     let view _ = ""
-    let incoming effect Print_current_time = effect
+    let incoming effect_ Print_current_time = effect_
   end
   in
   let handle =

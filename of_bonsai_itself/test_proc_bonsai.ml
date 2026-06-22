@@ -2754,7 +2754,7 @@ let%expect_test "on_display for updating a state (using on_change)" =
 let%expect_test "actor" =
   let print_int_effect = printf "%d\n" |> Bonsai.Effect.of_sync_fun in
   let component =
-    let%sub _, effect =
+    let%sub _, effect_ =
       Bonsai.actor
         ()
         ~sexp_of_model:[%sexp_of: Int.t]
@@ -2765,8 +2765,8 @@ let%expect_test "actor" =
     in
     return
     @@
-    let%map effect in
-    let%bind.Bonsai.Effect i = effect () in
+    let%map effect_ in
+    let%bind.Bonsai.Effect i = effect_ () in
     print_int_effect i
   in
   let handle =
@@ -2795,7 +2795,7 @@ let%expect_test "actor" =
 
 let%expect_test "actor sending events to itself" =
   let component =
-    let%sub (), effect =
+    let%sub (), effect_ =
       Bonsai.actor () ~default_model:() ~recv:(fun ctx () i ->
         Bonsai.Apply_action_context.schedule_event
           ctx
@@ -2809,8 +2809,8 @@ let%expect_test "actor sending events to itself" =
               Effect.print_s [%message (result : int)]));
         (), i * 2)
     in
-    let%arr effect in
-    fun x -> Effect.ignore_m (effect x)
+    let%arr effect_ in
+    fun x -> Effect.ignore_m (effect_ x)
   in
   let handle =
     Handle.create
@@ -2842,7 +2842,7 @@ let%expect_test "actor sending events to itself" =
 ;;
 
 let%expect_test "lifecycle" =
-  let effect action on =
+  let effect_ action on =
     Ui_effect.print_s [%message (action : string) (on : string)] |> Value.return
   in
   let component input =
@@ -2851,18 +2851,18 @@ let%expect_test "lifecycle" =
     then (
       let%sub () =
         Bonsai.Edge.lifecycle
-          ~on_activate:(effect "activate" "a")
-          ~on_deactivate:(effect "deactivate" "a")
-          ~after_display:(effect "after-display" "a")
+          ~on_activate:(effect_ "activate" "a")
+          ~on_deactivate:(effect_ "deactivate" "a")
+          ~after_display:(effect_ "after-display" "a")
           ()
       in
       rendered)
     else (
       let%sub () =
         Bonsai.Edge.lifecycle
-          ~on_activate:(effect "activate" "b")
-          ~on_deactivate:(effect "deactivate" "b")
-          ~after_display:(effect "after-display" "b")
+          ~on_activate:(effect_ "activate" "b")
+          ~on_deactivate:(effect_ "deactivate" "b")
+          ~after_display:(effect_ "after-display" "b")
           ()
       in
       rendered)
@@ -3047,10 +3047,10 @@ module%test Clock_every = struct
     let action =
       Value.return
         (let%bind.Effect () =
-           (Effect.of_sync_fun (fun () -> print_endline "[tick] - effect started")) ()
+           (Effect.of_sync_fun (fun () -> print_endline "[tick] - effect_ started")) ()
          in
          let%bind.Effect () = (Effect.For_testing.of_svar_fun (fun () -> !svar)) () in
-         Effect.of_sync_fun (fun () -> print_endline "[tock] - effect ended") ())
+         Effect.of_sync_fun (fun () -> print_endline "[tock] - effect_ ended") ())
     in
     let clock =
       Bonsai.Clock.every
@@ -3122,8 +3122,8 @@ module%test Clock_every = struct
       {|
       before: 00:00:08.000000000Z
       after:  00:00:10.000000000Z
-      [tick] - effect started
-      [tock] - effect ended
+      [tick] - effect_ started
+      [tock] - effect_ ended
       after paint: 00:00:10.200000000Z
       |}];
     (* Does not trigger at 7s + 2 * 3s. *)
@@ -3143,8 +3143,8 @@ module%test Clock_every = struct
       {|
       before: 00:00:13.000000000Z
       after:  00:00:13.200000000Z
-      [tick] - effect started
-      [tock] - effect ended
+      [tick] - effect_ started
+      [tock] - effect_ ended
       after paint: 00:00:13.400000000Z
       |}];
     (* Starting next trigger without immediately finishing/filling the svar. *)
@@ -3153,7 +3153,7 @@ module%test Clock_every = struct
       {|
       before: 00:00:13.400000000Z
       after:  00:00:16.400000000Z
-      [tick] - effect started
+      [tick] - effect_ started
       after paint: 00:00:16.400000000Z
       |}];
     (* Clock does not trigger before the current action is completed. *)
@@ -3172,7 +3172,7 @@ module%test Clock_every = struct
       after paint: 00:00:22.400000000Z
       |}];
     fill_and_reset_svar ~svar;
-    [%expect {| [tock] - effect ended |}];
+    [%expect {| [tock] - effect_ ended |}];
     move_forward_and_show 2.9;
     [%expect
       {|
@@ -3185,7 +3185,7 @@ module%test Clock_every = struct
       {|
       before: 00:00:25.300000000Z
       after:  00:00:25.400000000Z
-      [tick] - effect started
+      [tick] - effect_ started
       after paint: 00:00:25.400000000Z
       |}]
   ;;
@@ -3217,8 +3217,8 @@ module%test Clock_every = struct
       {|
       before: 00:00:08.000000000Z
       after:  00:00:10.000000000Z
-      [tick] - effect started
-      [tock] - effect ended
+      [tick] - effect_ started
+      [tock] - effect_ ended
       after paint: 00:00:10.200000000Z
       |}];
     (* Triggers at 7s + 6.0s unlike the
@@ -3231,8 +3231,8 @@ module%test Clock_every = struct
       {|
       before: 00:00:10.200000000Z
       after:  00:00:13.000000000Z
-      [tick] - effect started
-      [tock] - effect ended
+      [tick] - effect_ started
+      [tock] - effect_ ended
       after paint: 00:00:13.200000000Z
       |}];
     (* The next trigger will take a long time, 10 seconds! There will be a couple of
@@ -3242,7 +3242,7 @@ module%test Clock_every = struct
       {|
       before: 00:00:13.200000000Z
       after:  00:00:16.200000000Z
-      [tick] - effect started
+      [tick] - effect_ started
       after paint: 00:00:16.200000000Z
       |}];
     (* Clock does not tick in before the previous action is complete. *)
@@ -3275,7 +3275,7 @@ module%test Clock_every = struct
       after paint: 00:00:26.200000000Z
       |}];
     fill_and_reset_svar ~svar;
-    [%expect {| [tock] - effect ended |}];
+    [%expect {| [tock] - effect_ ended |}];
     (* Time moves slightly forward which results in another trigger. (hence the
        `Wait_period_after_previous_effect_starts_blocking behavior on skips. ) *)
     move_forward_and_show
@@ -3285,8 +3285,8 @@ module%test Clock_every = struct
       {|
       before: 00:00:26.200000000Z
       after:  00:00:26.210000000Z
-      [tick] - effect started
-      [tock] - effect ended
+      [tick] - effect_ started
+      [tock] - effect_ ended
       after paint: 00:00:26.410000000Z
       |}];
     (* Next expected trigger is at 7s + 19.21s + 3s, so going to 7s + 22.11s should not
@@ -3306,8 +3306,8 @@ module%test Clock_every = struct
       {|
       before: 00:00:29.110000000Z
       after:  00:00:29.210000000Z
-      [tick] - effect started
-      [tock] - effect ended
+      [tick] - effect_ started
+      [tock] - effect_ ended
       after paint: 00:00:29.410000000Z
       |}]
   ;;
@@ -3336,7 +3336,7 @@ module%test Clock_every = struct
         {|
         before: 00:00:07.000000000Z
         after:  00:00:10.000000000Z
-        [tick] - effect started
+        [tick] - effect_ started
         after paint: 00:00:10.000000000Z
         |}];
       move_forward_and_show 3.0;
@@ -3347,13 +3347,13 @@ module%test Clock_every = struct
         after paint: 00:00:13.000000000Z
         |}];
       fill_and_reset_svar ~svar;
-      [%expect {| [tock] - effect ended |}];
+      [%expect {| [tock] - effect_ ended |}];
       move_forward_and_show 0.000001;
       [%expect
         {|
         before: 00:00:13.000000000Z
         after:  00:00:13.000001000Z
-        [tick] - effect started
+        [tick] - effect_ started
         after paint: 00:00:13.000001000Z
         |}]
     ;;
@@ -3376,7 +3376,7 @@ module%test Clock_every = struct
         {|
         before: 00:00:07.000000000Z
         after:  00:00:10.000000000Z
-        [tick] - effect started
+        [tick] - effect_ started
         after paint: 00:00:10.000000000Z
         |}];
       move_forward_and_show 3.0;
@@ -3387,7 +3387,7 @@ module%test Clock_every = struct
         after paint: 00:00:13.000000000Z
         |}];
       fill_and_reset_svar ~svar;
-      [%expect {| [tock] - effect ended |}];
+      [%expect {| [tock] - effect_ ended |}];
       move_forward_and_show 0.000001;
       [%expect
         {|
@@ -3400,7 +3400,7 @@ module%test Clock_every = struct
         {|
         before: 00:00:13.000001000Z
         after:  00:00:16.000001000Z
-        [tick] - effect started
+        [tick] - effect_ started
         after paint: 00:00:16.000001000Z
         |}]
     ;;
@@ -3421,7 +3421,7 @@ module%test Clock_every = struct
       [%expect
         {|
         ()
-        [tick] - effect started
+        [tick] - effect_ started
         |}];
       move_forward_and_show 3.;
       [%expect
@@ -3438,7 +3438,7 @@ module%test Clock_every = struct
         after paint: 00:00:13.000000000Z
         |}];
       fill_and_reset_svar ~svar;
-      [%expect {| [tock] - effect ended |}];
+      [%expect {| [tock] - effect_ ended |}];
       Handle.recompute_view_until_stable handle
     ;;
 
@@ -3460,7 +3460,7 @@ module%test Clock_every = struct
         {|
         before: 00:00:07.000000000Z
         after:  00:00:10.000000000Z
-        [tick] - effect started
+        [tick] - effect_ started
         after paint: 00:00:10.000000000Z
         |}];
       move_forward_and_show 3.0;
@@ -3471,13 +3471,13 @@ module%test Clock_every = struct
         after paint: 00:00:13.000000000Z
         |}];
       fill_and_reset_svar ~svar;
-      [%expect {| [tock] - effect ended |}];
+      [%expect {| [tock] - effect_ ended |}];
       move_forward_and_show 0.000000001;
       [%expect
         {|
         before: 00:00:13.000000000Z
         after:  00:00:13.000000001Z
-        [tick] - effect started
+        [tick] - effect_ started
         after paint: 00:00:13.000000001Z
         |}]
     ;;
@@ -3514,8 +3514,8 @@ module%test Clock_every = struct
       {|
       before: 00:00:08.000000000Z
       after:  00:00:10.000000000Z
-      [tick] - effect started
-      [tock] - effect ended
+      [tick] - effect_ started
+      [tock] - effect_ ended
       after paint: 00:00:10.200000000Z
       |}];
     move_forward_and_show 2.7;
@@ -3532,8 +3532,8 @@ module%test Clock_every = struct
       {|
       before: 00:00:12.900000000Z
       after:  00:00:13.000000000Z
-      [tick] - effect started
-      [tock] - effect ended
+      [tick] - effect_ started
+      [tock] - effect_ ended
       after paint: 00:00:13.200000000Z
       |}];
     move_forward_and_show 2.8;
@@ -3541,7 +3541,7 @@ module%test Clock_every = struct
       {|
       before: 00:00:13.200000000Z
       after:  00:00:16.000000000Z
-      [tick] - effect started
+      [tick] - effect_ started
       after paint: 00:00:16.000000000Z
       |}];
     move_forward_and_show 3.0;
@@ -3573,7 +3573,7 @@ module%test Clock_every = struct
       after paint: 00:00:26.000000000Z
       |}];
     fill_and_reset_svar ~svar;
-    [%expect {| [tock] - effect ended |}];
+    [%expect {| [tock] - effect_ ended |}];
     move_forward_and_show 0.1;
     [%expect
       {|
@@ -3595,8 +3595,8 @@ module%test Clock_every = struct
       {|
       before: 00:00:27.900000000Z
       after:  00:00:28.000000000Z
-      [tick] - effect started
-      [tock] - effect ended
+      [tick] - effect_ started
+      [tock] - effect_ ended
       after paint: 00:00:28.200000000Z
       |}]
   ;;
@@ -3632,8 +3632,8 @@ module%test Clock_every = struct
       {|
       before: 00:00:08.000000000Z
       after:  00:00:10.000000000Z
-      [tick] - effect started
-      [tock] - effect ended
+      [tick] - effect_ started
+      [tock] - effect_ ended
       after paint: 00:00:10.200000000Z
       |}];
     move_forward_and_show 2.7;
@@ -3650,8 +3650,8 @@ module%test Clock_every = struct
       {|
       before: 00:00:12.900000000Z
       after:  00:00:13.000000000Z
-      [tick] - effect started
-      [tock] - effect ended
+      [tick] - effect_ started
+      [tock] - effect_ ended
       after paint: 00:00:13.200000000Z
       |}];
     move_forward_and_show 2.8;
@@ -3659,7 +3659,7 @@ module%test Clock_every = struct
       {|
       before: 00:00:13.200000000Z
       after:  00:00:16.000000000Z
-      [tick] - effect started
+      [tick] - effect_ started
       after paint: 00:00:16.000000000Z
       |}];
     move_forward_and_show 3.0;
@@ -3667,7 +3667,7 @@ module%test Clock_every = struct
       {|
       before: 00:00:16.000000000Z
       after:  00:00:19.000000000Z
-      [tick] - effect started
+      [tick] - effect_ started
       after paint: 00:00:19.000000000Z
       |}];
     move_forward_and_show 3.0;
@@ -3675,7 +3675,7 @@ module%test Clock_every = struct
       {|
       before: 00:00:19.000000000Z
       after:  00:00:22.000000000Z
-      [tick] - effect started
+      [tick] - effect_ started
       after paint: 00:00:22.000000000Z
       |}];
     move_forward_and_show 3.0;
@@ -3683,7 +3683,7 @@ module%test Clock_every = struct
       {|
       before: 00:00:22.000000000Z
       after:  00:00:25.000000000Z
-      [tick] - effect started
+      [tick] - effect_ started
       after paint: 00:00:25.000000000Z
       |}];
     move_forward_and_show 1.0;
@@ -3696,10 +3696,10 @@ module%test Clock_every = struct
     fill_and_reset_svar ~svar;
     [%expect
       {|
-      [tock] - effect ended
-      [tock] - effect ended
-      [tock] - effect ended
-      [tock] - effect ended
+      [tock] - effect_ ended
+      [tock] - effect_ ended
+      [tock] - effect_ ended
+      [tock] - effect_ ended
       |}];
     move_forward_and_show 0.1;
     [%expect
@@ -3722,8 +3722,8 @@ module%test Clock_every = struct
       {|
       before: 00:00:27.900000000Z
       after:  00:00:28.000000000Z
-      [tick] - effect started
-      [tock] - effect ended
+      [tick] - effect_ started
+      [tock] - effect_ ended
       after paint: 00:00:28.200000000Z
       |}]
   ;;
@@ -3847,8 +3847,8 @@ module%test Clock_every = struct
             {|
             before: 00:00:00.000000000Z
             after:  00:00:00.010000000Z
-            [tick] - effect started
-            [tock] - effect ended
+            [tick] - effect_ started
+            [tock] - effect_ ended
             after paint: 00:00:00.010000000Z
             |}];
           move_forward_and_show
@@ -3858,8 +3858,8 @@ module%test Clock_every = struct
             {|
             before: 00:00:00.010000000Z
             after:  00:00:00.020000000Z
-            [tick] - effect started
-            [tock] - effect ended
+            [tick] - effect_ started
+            [tock] - effect_ ended
             after paint: 00:00:00.020000000Z
             |}];
           move_forward_and_show
@@ -3869,8 +3869,8 @@ module%test Clock_every = struct
             {|
             before: 00:00:00.020000000Z
             after:  00:00:00.030000000Z
-            [tick] - effect started
-            [tock] - effect ended
+            [tick] - effect_ started
+            [tock] - effect_ ended
             after paint: 00:00:00.030000000Z
             |}];
           move_forward_and_show
@@ -3880,8 +3880,8 @@ module%test Clock_every = struct
             {|
             before: 00:00:00.030000000Z
             after:  00:00:00.040000000Z
-            [tick] - effect started
-            [tock] - effect ended
+            [tick] - effect_ started
+            [tock] - effect_ ended
             after paint: 00:00:00.040000000Z
             |}])
     ;;
@@ -3929,8 +3929,8 @@ module%test Clock_every = struct
             before: 00:00:00.000000000Z
             after:  00:00:00.010000000Z
             ()
-            [tick] - effect started
-            [tock] - effect ended
+            [tick] - effect_ started
+            [tock] - effect_ ended
             after paint: 00:00:01.010000000Z
             |}];
           move_forward_and_show
@@ -3941,8 +3941,8 @@ module%test Clock_every = struct
             before: 00:00:01.010000000Z
             after:  00:00:01.020000000Z
             ()
-            [tick] - effect started
-            [tock] - effect ended
+            [tick] - effect_ started
+            [tock] - effect_ ended
             after paint: 00:00:02.020000000Z
             |}];
           move_forward_and_show
@@ -3953,8 +3953,8 @@ module%test Clock_every = struct
             before: 00:00:02.020000000Z
             after:  00:00:02.030000000Z
             ()
-            [tick] - effect started
-            [tock] - effect ended
+            [tick] - effect_ started
+            [tock] - effect_ ended
             after paint: 00:00:03.030000000Z
             |}];
           move_forward_and_show
@@ -3965,8 +3965,8 @@ module%test Clock_every = struct
             before: 00:00:03.030000000Z
             after:  00:00:03.040000000Z
             ()
-            [tick] - effect started
-            [tock] - effect ended
+            [tick] - effect_ started
+            [tock] - effect_ ended
             after paint: 00:00:04.040000000Z
             |}])
     ;;
@@ -3998,8 +3998,8 @@ module%test Clock_every = struct
         {|
         before: 00:00:07.005000000Z
         after:  00:00:07.010000000Z
-        [tick] - effect started
-        [tock] - effect ended
+        [tick] - effect_ started
+        [tock] - effect_ ended
         after paint: 00:00:07.012000000Z
         |}];
       (* Does not trigger at 7s + 2 * 0.01. *)
@@ -4019,8 +4019,8 @@ module%test Clock_every = struct
         {|
         before: 00:00:07.020000000Z
         after:  00:00:07.022000000Z
-        [tick] - effect started
-        [tock] - effect ended
+        [tick] - effect_ started
+        [tock] - effect_ ended
         after paint: 00:00:07.024000000Z
         |}]
     ;;
@@ -4052,8 +4052,8 @@ module%test Clock_every = struct
         {|
         before: 00:00:07.005000000Z
         after:  00:00:07.010000000Z
-        [tick] - effect started
-        [tock] - effect ended
+        [tick] - effect_ started
+        [tock] - effect_ ended
         after paint: 00:00:07.012000000Z
         |}];
       (* Triggers at 7s + 2 * 0.01s unlike the "minimum" version of this which would need
@@ -4065,8 +4065,8 @@ module%test Clock_every = struct
         {|
         before: 00:00:07.012000000Z
         after:  00:00:07.020000000Z
-        [tick] - effect started
-        [tock] - effect ended
+        [tick] - effect_ started
+        [tock] - effect_ ended
         after paint: 00:00:07.022000000Z
         |}];
       (* The next trigger will take a long time, 10 seconds! There will be a couple of
@@ -4078,8 +4078,8 @@ module%test Clock_every = struct
         {|
         before: 00:00:07.022000000Z
         after:  00:00:07.030000000Z
-        [tick] - effect started
-        [tock] - effect ended
+        [tick] - effect_ started
+        [tock] - effect_ ended
         after paint: 00:00:17.030000000Z
         |}];
       (* Time moves slightly forward which results in another trigger. (hence the
@@ -4091,8 +4091,8 @@ module%test Clock_every = struct
         {|
         before: 00:00:17.030000000Z
         after:  00:00:17.030010000Z
-        [tick] - effect started
-        [tock] - effect ended
+        [tick] - effect_ started
+        [tock] - effect_ ended
         after paint: 00:00:17.032010000Z
         |}];
       move_forward_and_show 0.007;
@@ -4109,8 +4109,8 @@ module%test Clock_every = struct
         {|
         before: 00:00:17.039010000Z
         after:  00:00:17.040010000Z
-        [tick] - effect started
-        [tock] - effect ended
+        [tick] - effect_ started
+        [tock] - effect_ ended
         after paint: 00:00:17.042010000Z
         |}]
     ;;
@@ -4145,8 +4145,8 @@ module%test Clock_every = struct
         {|
         before: 00:00:07.005000000Z
         after:  00:00:07.010000000Z
-        [tick] - effect started
-        [tock] - effect ended
+        [tick] - effect_ started
+        [tock] - effect_ ended
         after paint: 00:00:07.012000000Z
         |}];
       move_forward_and_show 0.007;
@@ -4163,8 +4163,8 @@ module%test Clock_every = struct
         {|
         before: 00:00:07.019000000Z
         after:  00:00:07.020000000Z
-        [tick] - effect started
-        [tock] - effect ended
+        [tick] - effect_ started
+        [tock] - effect_ ended
         after paint: 00:00:07.022000000Z
         |}];
       move_forward_and_show
@@ -4174,8 +4174,8 @@ module%test Clock_every = struct
         {|
         before: 00:00:07.022000000Z
         after:  00:00:07.030000000Z
-        [tick] - effect started
-        [tock] - effect ended
+        [tick] - effect_ started
+        [tock] - effect_ ended
         after paint: 00:00:17.030000000Z
         |}];
       move_forward_and_show 0.001;
@@ -4199,8 +4199,8 @@ module%test Clock_every = struct
         {|
         before: 00:00:17.039000000Z
         after:  00:00:17.040000000Z
-        [tick] - effect started
-        [tock] - effect ended
+        [tick] - effect_ started
+        [tock] - effect_ ended
         after paint: 00:00:17.042000000Z
         |}]
     ;;
@@ -4259,14 +4259,14 @@ end
 
 let%expect_test "wait_after_display" =
   let component =
-    let effect name =
+    let effect_ name =
       let%sub wait_after_display = Bonsai.Edge.wait_after_display () in
       let%arr wait_after_display in
       let%bind.Effect () = wait_after_display in
       Effect.print_s [%message "after display" (name : string)]
     in
-    let%sub a = effect "a" in
-    let%sub b = effect "b" in
+    let%sub a = effect_ "a" in
+    let%sub b = effect_ "b" in
     return (Value.both a b)
   in
   let handle =
@@ -4637,7 +4637,7 @@ let%expect_test "sleep works even when switching between inactive and active" =
 
 let edge_poll_shared ~get_expect_output =
   let effect_tracker = Query_response_tracker.create () in
-  let effect = Bonsai.Effect.For_testing.of_query_response_tracker effect_tracker in
+  let effect_ = Bonsai.Effect.For_testing.of_query_response_tracker effect_tracker in
   let var = Bonsai.Var.create "hello" in
   let component =
     Bonsai.Edge.Poll.effect_on_change
@@ -4647,7 +4647,7 @@ let edge_poll_shared ~get_expect_output =
       ~equal_result:[%equal: String.t]
       Bonsai.Edge.Poll.Starting.empty
       (Bonsai.Var.value var)
-      ~effect:(Value.return effect)
+      ~effect_:(Value.return effect_)
   in
   let handle =
     Handle.create
@@ -4689,7 +4689,7 @@ let%expect_test "Edge.poll in order" =
   [%expect {| ((pending ()) (output (WORLD))) |}]
 ;;
 
-(* When completing the requests out-of-order, the last-fired effect still wins *)
+(* When completing the requests out-of-order, the last-fired effect_ still wins *)
 let%expect_test "Edge.poll out of order" =
   let get_expect_output () = [%expect.output] in
   let var, effect_tracker, trigger_display = edge_poll_shared ~get_expect_output in
@@ -5253,7 +5253,7 @@ let%expect_test "freeze" =
   [%expect {| hello |}]
 ;;
 
-let%expect_test "effect-lazy" =
+let%expect_test "effect_-lazy" =
   let message = Bonsai.Var.create "hello" in
   let on = Bonsai.Var.create true in
   let component =
@@ -5350,7 +5350,7 @@ let%expect_test "with_self_effect" =
         in
         let%arr number, set_number = state
         and input in
-        let effect action =
+        let effect_ action =
           match action with
           | Result_spec.Print ->
             (match%bind.Effect input with
@@ -5360,7 +5360,7 @@ let%expect_test "with_self_effect" =
           | Set i -> set_number i
         in
         let computed = sprintf "the value: [%d]" number in
-        computed, effect)
+        computed, effect_)
   in
   let handle = Handle.create (module Result_spec) component in
   Handle.show handle;
@@ -5869,8 +5869,8 @@ let%expect_test "action dropped in match%sub" =
         ~on_activate:
           (let%map inject and set_x in
            let%bind.Effect () = set_x false in
-           (* This call to [inject] below successfully schedules the effect, but the
-              effect never gets run because the effect that just got executed switched
+           (* This call to [inject] below successfully schedules the effect_, but the
+              effect_ never gets run because the effect_ that just got executed switched
               which branch of the [match%sub] was active, thus making it impossible to run
               the [apply_action] function of the [state_machine1]. A similar component
               that uses [state_machine0] would not have this problem. *)
@@ -6435,7 +6435,7 @@ let%expect_test "on_activate lifecycle events are run the second frame after the
       (Result_spec.sexp (module Unit))
       (if%sub Bonsai.Var.value active_var then component else component)
   in
-  (* The on_activate does not run in the first frame; rather, it is enqueued in the effect
+  (* The on_activate does not run in the first frame; rather, it is enqueued in the effect_
      handler *)
   Handle.recompute_view handle;
   [%expect {| |}];
