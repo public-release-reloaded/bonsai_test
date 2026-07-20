@@ -12,27 +12,27 @@ build: [
 ]
 depends: [
   "ocaml" {>= "5.5.0"}
-  "async"
-  "async_js"
-  "base"
-  "bonsai"
-  "bonsai_concrete"
-  "core"
-  "core_unix"
-  "expect_test_helpers_base"
-  "expect_test_helpers_core"
-  "expectable"
-  "incr_map"
-  "incremental"
-  "ocaml-embed-file"
-  "patdiff"
-  "ppx_expect"
-  "ppx_jane"
-  "ppx_pattern_bind"
-  "ppx_quick_test"
-  "virtual_dom"
-  "dune"                     {>= "3.17.0"}
-  "re"                       {>= "1.8.0"}
+  "async" {>= "v0.18~" & < "v0.19~"}
+  "async_js" {>= "v0.18~" & < "v0.19~"}
+  "base" {>= "v0.18~" & < "v0.19~"}
+  "bonsai" {>= "v0.18~" & < "v0.19~"}
+  "bonsai_concrete" {>= "v0.18~" & < "v0.19~"}
+  "core" {>= "v0.18~" & < "v0.19~"}
+  "core_unix" {>= "v0.18~" & < "v0.19~"}
+  "expect_test_helpers_base" {>= "v0.18~" & < "v0.19~"}
+  "expect_test_helpers_core" {>= "v0.18~" & < "v0.19~"}
+  "expectable" {>= "v0.18~" & < "v0.19~"}
+  "incr_map" {>= "v0.18~" & < "v0.19~"}
+  "incremental" {>= "v0.18~" & < "v0.19~"}
+  "ocaml-embed-file" {>= "v0.18~" & < "v0.19~"}
+  "patdiff" {>= "v0.18~" & < "v0.19~"}
+  "ppx_expect" {>= "v0.18~" & < "v0.19~"}
+  "ppx_jane" {>= "v0.18~" & < "v0.19~"}
+  "ppx_pattern_bind" {>= "v0.18~" & < "v0.19~"}
+  "ppx_quick_test" {>= "v0.18~" & < "v0.19~"}
+  "virtual_dom" {>= "v0.18~" & < "v0.19~"}
+  "dune" {>= "3.17.0"}
+  "re" {>= "1.8.0"}
 ]
 available: arch != "x86_32"
 synopsis: "A library for testing Bonsai state machines."
